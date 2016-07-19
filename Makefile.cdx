@@ -17,6 +17,8 @@ package : build
 clean :
 	rm -rf build.cdx
 	make -C wangle clean
+	rm wangle/Makefile
+	@echo "Consider git -xn clean followed by git -xf clean"
 
 build : wangle/Makefile
 	cd wangle; make -j4
@@ -60,13 +62,4 @@ docker-bash:
 
 # ================
 #
-
-.PHONY : clean $(CLEAN_MODULES)
-$(CLEAN_MODULES) : clean/% : %
-	cd $*; git clean -xdf
-	cd $*; git checkout -- .
-
-clean : $(CLEAN_MODULES)
-	@rm -rf build
-	@rm -f cdx*.deb
 
