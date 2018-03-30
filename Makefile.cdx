@@ -9,7 +9,7 @@ package : build
 	DESTDIR=`pwd`/build.cdx/install make -C wangle install
 	cd build.cdx; fpm -f -C install -n cdx-wangle \
 		--deb-no-default-config-files \
-		--version 1.4.0 \
+		--version 1.6.0 \
 		--description "Git Commit: $(GIT_HASH)" \
 		-s dir -t deb usr
 
@@ -23,50 +23,4 @@ build : wangle/Makefile
 
 wangle/Makefile: wangle/VERSION
 	cd wangle; cmake .
-
-# ================
-# Vagrant machinery
-
-vagrant-up : clean
-	vagrant up
-	vagrant ssh -c "cd $(DIR) && make docker-up"
-
-vagrant-bash:
-	vagrant ssh -c "cd $(DIR) && make docker-bash"
-
-vagrant-destroy:
-	vagrant destroy
-
-vagrant-build:
-	vagrant ssh -c "cd $(DIR) && sudo docker run -v /vagrant:/repo -w /repo $(LABEL) make"
-
-vagrant-package:
-	vagrant ssh -c "cd ($DIR) && sudo docker run -v /vagrant:/repo -w /repo $(LABEL) make package"
-
-# ================
-# Build directly in docker if we're running on a compatible host
-
-docker-up:
-	sudo docker build --no-cache --rm -t $(LABEL) .
-
-docker-build:
-	sudo docker run -v `pwd`/..:/repo -w /repo $(LABEL) make BAMBOO_BUILD_NUMBER=$(BAMBOO_BUILD_NUMBER)
-
-docker-package:
-	sudo docker run -v `pwd`/..:/repo -w /repo $(LABEL) make package BAMBOO_BUILD_NUMBER=$(BAMBOO_BUILD_NUMBER)
-
-docker-bash:
-	sudo docker run -i -t -v `pwd`/..:/repo -w /repo $(LABEL) /bin/bash
-
-# ================
-#
-
-.PHONY : clean $(CLEAN_MODULES)
-$(CLEAN_MODULES) : clean/% : %
-	cd $*; git clean -xdf
-	cd $*; git checkout -- .
-
-clean : $(CLEAN_MODULES)
-	@rm -rf build
-	@rm -f cdx*.deb
 
